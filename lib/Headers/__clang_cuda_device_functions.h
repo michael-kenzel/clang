@@ -350,10 +350,10 @@ __DEVICE__ int __iAtomicAdd(int *__p, int __v) {
   return __nvvm_atom_add_gen_i(__p, __v);
 }
 __DEVICE__ int __iAtomicAdd_block(int *__p, int __v) {
-  __nvvm_atom_cta_add_gen_i(__p, __v);
+  return __nvvm_atom_cta_add_gen_i(__p, __v);
 }
 __DEVICE__ int __iAtomicAdd_system(int *__p, int __v) {
-  __nvvm_atom_sys_add_gen_i(__p, __v);
+  return __nvvm_atom_sys_add_gen_i(__p, __v);
 }
 __DEVICE__ int __iAtomicAnd(int *__p, int __v) {
   return __nvvm_atom_and_gen_i(__p, __v);

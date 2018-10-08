@@ -161,6 +161,7 @@ __DEVICE__ double rint(double);
 __DEVICE__ float rint(float);
 __DEVICE__ double round(double);
 __DEVICE__ float round(float);
+__DEVICE__ float roundf(float);
 __DEVICE__ double scalbln(double, long);
 __DEVICE__ float scalbln(float, long);
 __DEVICE__ double scalbn(double, int);
