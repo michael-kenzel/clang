@@ -2130,7 +2130,8 @@ void CodeGenModule::EmitGlobal(GlobalDecl GD) {
       if (!Global->hasAttr<CUDADeviceAttr>() &&
           !Global->hasAttr<CUDAGlobalAttr>() &&
           !Global->hasAttr<CUDAConstantAttr>() &&
-          !Global->hasAttr<CUDASharedAttr>())
+          !Global->hasAttr<CUDASharedAttr>() &&
+          (!LangOpts.CUDADeviceDefault || Global->hasAttr<CUDAHostAttr>()))
         return;
     } else {
       // We need to emit host-side 'shadows' for all global
@@ -2140,7 +2141,7 @@ void CodeGenModule::EmitGlobal(GlobalDecl GD) {
 
       // So device-only functions are the only things we skip.
       if (isa<FunctionDecl>(Global) && !Global->hasAttr<CUDAHostAttr>() &&
-          Global->hasAttr<CUDADeviceAttr>())
+          (Global->hasAttr<CUDADeviceAttr>() || LangOpts.CUDADeviceDefault))
         return;
 
       assert((isa<FunctionDecl>(Global) || isa<VarDecl>(Global)) &&
@@ -2186,7 +2187,8 @@ void CodeGenModule::EmitGlobal(GlobalDecl GD) {
     bool MustEmitForCuda = LangOpts.CUDA && !LangOpts.CUDAIsDevice &&
                            !VD->hasDefinition() &&
                            (VD->hasAttr<CUDAConstantAttr>() ||
-                            VD->hasAttr<CUDADeviceAttr>());
+                            VD->hasAttr<CUDADeviceAttr>() ||
+                            LangOpts.CUDADeviceDefault);
     if (!MustEmitForCuda &&
         VD->isThisDeclarationADefinition() != VarDecl::Definition &&
         !Context.isMSStaticDataMemberInlineDefinition(VD)) {
@@ -3496,14 +3498,14 @@ void CodeGenModule::EmitGlobalVarDefinition(const VarDecl *D,
   // / cudaMemcpyToSymbol() / cudaMemcpyFromSymbol())."
   if (GV && LangOpts.CUDA) {
     if (LangOpts.CUDAIsDevice) {
-      if (D->hasAttr<CUDADeviceAttr>() || D->hasAttr<CUDAConstantAttr>())
+      if (D->hasAttr<CUDADeviceAttr>() || LangOpts.CUDADeviceDefault || D->hasAttr<CUDAConstantAttr>())
         GV->setExternallyInitialized(true);
     } else {
       // Host-side shadows of external declarations of device-side
       // global variables become internal definitions. These have to
       // be internal in order to prevent name conflicts with global
       // host variables with the same name in a different TUs.
-      if (D->hasAttr<CUDADeviceAttr>() || D->hasAttr<CUDAConstantAttr>()) {
+      if (D->hasAttr<CUDADeviceAttr>() || LangOpts.CUDADeviceDefault || D->hasAttr<CUDAConstantAttr>()) {
         Linkage = llvm::GlobalValue::InternalLinkage;
 
         // Shadow variables and their properties must be registered

@@ -640,8 +640,8 @@ void CodeGenVTables::addVTableComponent(
       // OK on host side: anything except __device__-only functions.
       bool CanEmitMethod =
           CGM.getLangOpts().CUDAIsDevice
-              ? MD->hasAttr<CUDADeviceAttr>()
-              : (MD->hasAttr<CUDAHostAttr>() || !MD->hasAttr<CUDADeviceAttr>());
+              ? (MD->hasAttr<CUDADeviceAttr>() || (CGM.getLangOpts().CUDADeviceDefault && !MD->hasAttr<CUDAHostAttr>()))
+              : (MD->hasAttr<CUDAHostAttr>() || (!CGM.getLangOpts().CUDADeviceDefault && !MD->hasAttr<CUDADeviceAttr>()));
       if (!CanEmitMethod)
         return builder.addNullPointer(CGM.Int8PtrTy);
       // Method is acceptable, continue processing as usual.

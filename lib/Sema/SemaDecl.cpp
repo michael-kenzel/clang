@@ -6184,7 +6184,8 @@ static bool isIncompleteDeclExternC(Sema &S, const T *D) {
 
     // So do CUDA's host/device attributes.
     if (S.getLangOpts().CUDA && (D->template hasAttr<CUDADeviceAttr>() ||
-                                 D->template hasAttr<CUDAHostAttr>()))
+                                 D->template hasAttr<CUDAHostAttr>() ||
+                                 S.getLangOpts().CUDADeviceDefault))
       return false;
   }
   return D->isExternC();
@@ -9147,7 +9148,8 @@ Sema::ActOnFunctionDeclarator(Scope *S, Declarator &D, DeclContext *DC,
     // -fcuda-allow-variadic-functions.
     if (!getLangOpts().CUDAAllowVariadicFunctions && NewFD->isVariadic() &&
         (NewFD->hasAttr<CUDADeviceAttr>() ||
-         NewFD->hasAttr<CUDAGlobalAttr>()) &&
+         NewFD->hasAttr<CUDAGlobalAttr>() ||
+         (getLangOpts().CUDADeviceDefault && !NewFD->hasAttr<CUDAHostAttr>())) &&
         !(II && II->isStr("printf") && NewFD->isExternC() &&
           !D.isFunctionDefinition())) {
       Diag(NewFD->getLocation(), diag::err_variadic_device_fn);

@@ -92,7 +92,7 @@ Sema::IdentifyCUDATarget(const ParsedAttributesView &Attrs) {
   if (HasDeviceAttr)
     return CFT_Device;
 
-  return CFT_Host;
+  return getLangOpts().CUDADeviceDefault ? CFT_Device : CFT_Host;
 }
 
 template <typename A>
@@ -128,7 +128,7 @@ Sema::CUDAFunctionTarget Sema::IdentifyCUDATarget(const FunctionDecl *D,
     return CFT_HostDevice;
   }
 
-  return CFT_Host;
+  return getLangOpts().CUDADeviceDefault ? CFT_Device : CFT_Host;
 }
 
 // * CUDA Call preference table
@@ -478,7 +478,7 @@ void Sema::checkAllowedCUDAInitializer(VarDecl *VD) {
     return;
   const Expr *Init = VD->getInit();
   if (VD->hasAttr<CUDADeviceAttr>() || VD->hasAttr<CUDAConstantAttr>() ||
-      VD->hasAttr<CUDASharedAttr>()) {
+      VD->hasAttr<CUDASharedAttr>() || getLangOpts().CUDADeviceDefault) {
     assert(!VD->isStaticLocal() || VD->hasAttr<CUDASharedAttr>());
     bool AllowedInit = false;
     if (const CXXConstructExpr *CE = dyn_cast<CXXConstructExpr>(Init))
@@ -488,7 +488,7 @@ void Sema::checkAllowedCUDAInitializer(VarDecl *VD) {
     // constructor according to CUDA rules. This deviates from NVCC,
     // but allows us to handle things like constexpr constructors.
     if (!AllowedInit &&
-        (VD->hasAttr<CUDADeviceAttr>() || VD->hasAttr<CUDAConstantAttr>()))
+        (VD->hasAttr<CUDADeviceAttr>() || VD->hasAttr<CUDAConstantAttr>() || getLangOpts().CUDADeviceDefault))
       AllowedInit = VD->getInit()->isConstantInitializer(
           Context, VD->getType()->isReferenceType());
 

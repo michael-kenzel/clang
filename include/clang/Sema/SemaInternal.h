@@ -56,7 +56,8 @@ inline bool DeclAttrsMatchCUDAMode(const LangOptions &LangOpts, Decl *D) {
     return true;
   bool isDeviceSideDecl = D->hasAttr<CUDADeviceAttr>() ||
                           D->hasAttr<CUDASharedAttr>() ||
-                          D->hasAttr<CUDAGlobalAttr>();
+                          D->hasAttr<CUDAGlobalAttr>() ||
+                          (LangOpts.CUDADeviceDefault && !D->hasAttr<CUDAHostAttr>());
   return isDeviceSideDecl == LangOpts.CUDAIsDevice;
 }
 

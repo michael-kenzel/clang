@@ -2085,11 +2085,11 @@ static const CXXMethodDecl *computeKeyFunction(ASTContext &Context,
       // on this side of compilation.
       if (Context.getLangOpts().CUDAIsDevice) {
         // In device mode ignore methods without __device__ attribute.
-        if (!MD->hasAttr<CUDADeviceAttr>())
+        if (!MD->hasAttr<CUDADeviceAttr>() && !Context.getLangOpts().CUDADeviceDefault)
           continue;
       } else {
         // In host mode ignore __device__-only methods.
-        if (!MD->hasAttr<CUDAHostAttr>() && MD->hasAttr<CUDADeviceAttr>())
+        if (!MD->hasAttr<CUDAHostAttr>() && (MD->hasAttr<CUDADeviceAttr>() || Context.getLangOpts().CUDADeviceDefault))
           continue;
       }
     }
